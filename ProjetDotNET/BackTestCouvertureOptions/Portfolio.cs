@@ -40,6 +40,11 @@ namespace BackTestCouvertureOptions
         public Portfolio(PricingLibrary.FinancialProducts.Share underlyingShare, PricingLibrary.FinancialProducts.VanillaCall call, DateTime initialDate, double underlyingSharePrice, double volatility)
         {
             UnderlyingShare = underlyingShare;
+            // Initialisation du prix du portefeuille
+            PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
+            PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
+            res = pricer.PriceCall(call, initialDate, 365, underlyingSharePrice, volatility);
+            PortfolioValue = res.Price;
             // Constitution du portefuille
             rebalancing(call, initialDate, underlyingSharePrice, volatility);
             
