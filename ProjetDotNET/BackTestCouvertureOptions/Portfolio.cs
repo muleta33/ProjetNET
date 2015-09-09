@@ -8,14 +8,15 @@ namespace BackTestCouvertureOptions
 {
     class Portfolio
     {
-        private String _underlyingShareId;
+        private PricingLibrary.FinancialProducts.Share _underlyingShare;
         private double _underlyingShareQuantity;
-        private double _riskFreeRateQuantity;
+        private double _riskFreeRateInvestment;
+        private double _portfolioValue;
 
-        public String UnderlyingShareId
+        public PricingLibrary.FinancialProducts.Share UnderlyingShare
         {
-            get { return _underlyingShareId; }
-            set { _underlyingShareId = value; }
+            get { return _underlyingShare; }
+            set { _underlyingShare = value; }
         }
 
         public double UnderlyingShareQuantity
@@ -24,24 +25,43 @@ namespace BackTestCouvertureOptions
             set { _underlyingShareQuantity = value; }
         }
 
-        public double RiskFreeRateQuantity
+        public double RiskFreeRateInvestment
         {
-            get { return _riskFreeRateQuantity; }
-            set { _riskFreeRateQuantity = value; }
+            get { return _riskFreeRateInvestment; }
+            set { _riskFreeRateInvestment = value; }
         }
 
-        public Portfolio()
+        public double PortfolioValue
         {
+            get { return _portfolioValue; }
+            set { _portfolioValue = value; }
         }
 
-        public double computeValue(double riskFreeRateAccruedValue)
+        public Portfolio(PricingLibrary.FinancialProducts.Share underlyingShare, PricingLibrary.FinancialProducts.VanillaCall call, DateTime initialDate, double underlyingSharePrice, double volatility)
         {
-            return 0;
+            UnderlyingShare = underlyingShare;
+            // Constitution du portefuille
+            rebalancing(call, initialDate, underlyingSharePrice, volatility);
+            
         }
 
-        public void rebalancing()
+        public void rebalancing(PricingLibrary.FinancialProducts.VanillaCall call, System.DateTime atTime, double underlyingSharePrice, double volatility)
         {
+            // ATTENTION, Avant de rebalancer il faut calculer la valeur du portefeuille
 
+            // Rebalancement
+            PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double [0]);
+            PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
+            res = pricer.PriceCall(call, atTime, 365, underlyingSharePrice, volatility);
+            UnderlyingShareQuantity = res.Deltas[0];
+            RiskFreeRateInvestment = PortfolioValue - (UnderlyingShareQuantity * underlyingSharePrice);
+        }
+
+        public double computePortfolioValue(double underlyingSharePrice, double rate)
+        {
+            // Calcul de la valeur du portefeuille
+            PortfolioValue = UnderlyingShareQuantity * underlyingSharePrice + RiskFreeRateInvestment * rate;
+            return PortfolioValue;
         }
     }
 }
