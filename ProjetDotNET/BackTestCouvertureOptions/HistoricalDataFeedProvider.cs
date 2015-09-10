@@ -7,7 +7,7 @@ using PricingLibrary.Utilities.MarketDataFeed;
 
 namespace BackTestCouvertureOptions
 {
-    class HistoricalDataFeedProvider
+    class HistoricalDataFeedProvider : IDataFeedProvider
     {
         public String _name;
         public int _numberOfDaysPerYear;
@@ -30,14 +30,12 @@ namespace BackTestCouvertureOptions
             NumberOfDaysPerYear = dataNumberOfDaysPerYear;
         }
 
-        public System.Collections.Generic.List<DataFeed>  GetHistoricalDataFeed(PricingLibrary.FinancialProducts.IOption option, System.DateTime fromDate){
+        public System.Collections.Generic.List<DataFeed>  GetDataFeed(PricingLibrary.FinancialProducts.IOption option, System.DateTime fromDate){
             System.Collections.Generic.List<DataFeed> result = new System.Collections.Generic.List<DataFeed>() ;
             using (DataBaseDataContext mtdc = new DataBaseDataContext())
             {
                 var result1 = (from s in mtdc.HistoricalShareValues where ((option.UnderlyingShareIds.Contains(s.id)) && (s.date >= fromDate)&&(s.date<=option.Maturity)) select s).OrderByDescending(d => d.date).ToList();
                 System.DateTime curentdate = result1[result1.Count() - 1].date;
-                //System.Collections.Generic.List< System.Collections.Generic.Dictionary<String, decimal>> priceList = new  System.Collections.Generic.List< System.Collections.Generic.Dictionary<String, decimal>>();
-                //int j = 0;
                 System.Collections.Generic.Dictionary<String, decimal> priceList = new System.Collections.Generic.Dictionary<String, decimal>();
                 for (int i = result1.Count() - 1; i >= 0 ; i--)
                 {
@@ -63,7 +61,7 @@ namespace BackTestCouvertureOptions
             }
         }
      
-        public System.DateTime GetHistoricalMinDate()
+        public System.DateTime GetMinDate()
         {
             System.DateTime DateReturn = new System.DateTime();
             using (DataBaseDataContext mtdc = new DataBaseDataContext())
