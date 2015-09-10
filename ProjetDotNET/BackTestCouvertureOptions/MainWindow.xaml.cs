@@ -37,13 +37,13 @@ namespace BackTestCouvertureOptions
             //SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
             HistoricalDataFeedProvider HistoricalData = new HistoricalDataFeedProvider("HistoricalData", 365);
             
-            DateTime maturityDate = new DateTime(2015, 7, 23);
-            DateTime initialDate = HistoricalData.GetHistoricalMinDate();
+            DateTime maturityDate = new DateTime(2014, 7, 23);
+            DateTime initialDate = new DateTime(2013, 9, 18);
             //DateTime initialDate = simulatedData.GetMinDate();
             
             
-            Share [] shareList= {new Share("ACCOR SA", "AI FP")};
-            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 60);
+            Share [] shareList= {new Share("ACCOR SA", "BNP FP")};
+            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 100);
 
 
 
@@ -51,17 +51,19 @@ namespace BackTestCouvertureOptions
             //List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
             List<DataFeed> dataFeedList = HistoricalData.GetHistoricalDataFeed(vanillaCall, initialDate);
 
+            ShareVolatility shareVolatility = new ShareVolatility(shareList[0].Id, 15, new DateTime(2013, 11, 29));
+            double volatility = shareVolatility.computeVolatility(dataFeedList);
 
             PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-            res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, 0.4);
+            res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, volatility);
             double delta = res.Deltas[0];
             System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
             sharesQuantities.Add(shareList[0], delta);
             double riskFreeRateInvestment = res.Price - delta * (double)dataFeedList[0].PriceList[shareList[0].Id];
             HedgingPortfolio portefolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
 
-            double volatility = 0.4;
+            
             for (int i=0; i < dataFeedList.Count() - 2; i++)
             {
                 DateTime currentDate = dataFeedList[i].Date;
