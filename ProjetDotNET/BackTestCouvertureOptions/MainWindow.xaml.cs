@@ -31,33 +31,26 @@ namespace BackTestCouvertureOptions
         public MainWindow()
         {
            // InitializeComponent();
-            //Dictionary<string, Decimal> e =  new Dictionary<string,decimal>();
-
-            
-            //using (DataClasses1DataContext mtdc = new DataClasses1DataContext())
-            //{
-                //var req = mtdc.ShareNames.Select(el => el.name).Distinct().ToList(); 
-              //  DateTime Date = new DateTime(2010, 1, 1);
-              // e =  (from s in mtdc.HistoricalShareValues  where (s.date==Date) select s).ToDictionary(s=>s.id, s=>s.value);
-              // DataFeed d = new DataFeed(Date, e);
-
-                //var l= req.;
-           // SimulatedDataFeedProvider Test = new SimulatedDataFeedProvider();
-            //DateTime Date = new DateTime(2015,3,2);
-            //Test = GetDataFeed(req, Date);
-            // var req = mtdc.ShareNames.Select(el => el.id).Distinct().ToList(); 
-               // req2.UnderlyingShareIds = req;
-            //SimulatedDataFeedProvider Test = new SimulatedDataFeedProvider();
-
             double riskFreeRate = 0;
             decimal sharePrice = 0;
+            
+            //SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
+            HistoricalDataFeedProvider HistoricalData = new HistoricalDataFeedProvider("HistoricalData", 365);
+            
+            DateTime maturityDate = new DateTime(2015, 7, 23);
+            DateTime initialDate = HistoricalData.GetHistoricalMinDate();
+            //DateTime initialDate = simulatedData.GetMinDate();
+            
+            
+            Share [] shareList= {new Share("ACCOR SA", "AI FP")};
+            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 60);
 
-            SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
-            DateTime maturityDate = new DateTime(2013, 1, 1);
-            DateTime initialDate = simulatedData.GetMinDate();
-            Share [] shareList= {new Share("ALO FP", "ACCOR SA")};
-            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 8);
-            List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
+
+
+           
+            //List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
+            List<DataFeed> dataFeedList = HistoricalData.GetHistoricalDataFeed(vanillaCall, initialDate);
+
 
             PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
@@ -80,6 +73,7 @@ namespace BackTestCouvertureOptions
                 System.Collections.Generic.Dictionary<String, double> sharesPrices = new System.Collections.Generic.Dictionary<String, double>();
                 sharesPrices.Add(shareList[0].Id, (double)sharePrice);
                 portefolio.update(vanillaCall, currentDate, sharesPrices, volatility, riskFreeRate);
+                var Val = portefolio.Value;
             }
             if (dataFeedList[dataFeedList.Count() - 1].PriceList.TryGetValue(shareList[0].Id, out sharePrice))
             {
@@ -96,7 +90,9 @@ namespace BackTestCouvertureOptions
             double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
             Console.WriteLine(portefolio.Value);
             Console.WriteLine(payoff);
-            Console.WriteLine((portefolio.Value - payoff) / 10);
+            Console.WriteLine(Math.Abs((portefolio.Value - payoff) / 10));
+
+
         }
     }
 }
