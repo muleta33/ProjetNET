@@ -14,12 +14,12 @@
         <TextBlock HorizontalAlignment="Left" Margin="54,51,0,0" TextWrapping="Wrap" Text="Underlying Share" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="179,51,0,0" TextWrapping="Wrap" Text="Strike" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="234,51,0,0" TextWrapping="Wrap" Text="Maturity Date" VerticalAlignment="Top"/>
-        <toolkit:RichTextBox x:Name="_richTextBox" IsReadOnly="true" BorderBrush="Gray" Padding="10" HorizontalAlignment="Left" Height="116" Margin="37,224,0,0" VerticalAlignment="Top" Width="299" AcceptsReturn="True"
+            <toolkit:RichTextBox x:Name="_richTextBox" IsReadOnly="true" BorderBrush="Gray" Padding="10" HorizontalAlignment="Left" Height="116" Margin="37,224,0,0" VerticalAlignment="Top" Width="299" AcceptsReturn="True"
                                      Text="{Binding Results, UpdateSourceTrigger=PropertyChanged}" 
                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
-            <toolkit:RichTextBox.TextFormatter>
-                <toolkit:PlainTextFormatter />
-            </toolkit:RichTextBox.TextFormatter>
-        </toolkit:RichTextBox>
-    </Grid>
+                <toolkit:RichTextBox.TextFormatter>
+                    <toolkit:PlainTextFormatter />
+                </toolkit:RichTextBox.TextFormatter>
+            </toolkit:RichTextBox>
+        </Grid>
 </Window>
