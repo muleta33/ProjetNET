@@ -38,7 +38,7 @@ namespace BackTestCouvertureOptions
             HistoricalDataFeedProvider HistoricalData = new HistoricalDataFeedProvider("HistoricalData", 365);
             
             DateTime maturityDate = new DateTime(2015, 7, 23);
-            DateTime initialDate = HistoricalData.GetHistoricalMinDate();
+            DateTime initialDate = HistoricalData.GetMinDate();
             //DateTime initialDate = simulatedData.GetMinDate();
             
             
@@ -49,43 +49,44 @@ namespace BackTestCouvertureOptions
 
            
             //List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
-            List<DataFeed> dataFeedList = HistoricalData.GetHistoricalDataFeed(vanillaCall, initialDate);
+            //List<DataFeed> dataFeedList = HistoricalData.GetHistoricalDataFeed(vanillaCall, initialDate);
 
 
-            PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
-            PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-            res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, 0.4);
-            double delta = res.Deltas[0];
-            System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
-            sharesQuantities.Add(shareList[0], delta);
-            double riskFreeRateInvestment = res.Price - delta * (double)dataFeedList[0].PriceList[shareList[0].Id];
-            HedgingPortfolio portefolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
+            //PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
+            //PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
+            //res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, 0.4);
+            //double delta = res.Deltas[0];
+            //System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
+            //sharesQuantities.Add(shareList[0], delta);
+            //double riskFreeRateInvestment = res.Price - delta * (double)dataFeedList[0].PriceList[shareList[0].Id];
+            //HedgingPortfolio portefolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
 
-            double volatility = 0.4;
-            for (int i=0; i < dataFeedList.Count() - 2; i++)
-            {
-                DateTime currentDate = dataFeedList[i].Date;
-                DateTime followingDate = dataFeedList[i + 1].Date;
-                int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-                double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-                riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-                bool existValue = dataFeedList[i].PriceList.TryGetValue(shareList[0].Id, out sharePrice);
-                System.Collections.Generic.Dictionary<String, double> sharesPrices = new System.Collections.Generic.Dictionary<String, double>();
-                sharesPrices.Add(shareList[0].Id, (double)sharePrice);
-                portefolio.update(vanillaCall, currentDate, sharesPrices, volatility, riskFreeRate);
-                var Val = portefolio.Value;
-            }
-            if (dataFeedList[dataFeedList.Count() - 1].PriceList.TryGetValue(shareList[0].Id, out sharePrice))
-            {
-                DateTime currentDate = dataFeedList[dataFeedList.Count() - 2].Date;
-                DateTime followingDate = dataFeedList[dataFeedList.Count() - 1].Date;
-                int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-                double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-                riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-                System.Collections.Generic.Dictionary<String, double> sharesPricesDictionary = new System.Collections.Generic.Dictionary<String, double>();
-                sharesPricesDictionary.Add(shareList[0].Id, (double)sharePrice);
-                portefolio.computeValue(sharesPricesDictionary, riskFreeRate);
-            }
+            //double volatility = 0.4;
+            //for (int i=0; i < dataFeedList.Count() - 2; i++)
+            //{
+                //DateTime currentDate = dataFeedList[i].Date;
+                //DateTime followingDate = dataFeedList[i + 1].Date;
+                //int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
+                //double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
+                //riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
+                //bool existValue = dataFeedList[i].PriceList.TryGetValue(shareList[0].Id, out sharePrice);
+                //System.Collections.Generic.Dictionary<String, double> sharesPrices = new System.Collections.Generic.Dictionary<String, double>();
+                //sharesPrices.Add(shareList[0].Id, (double)sharePrice);
+                //portefolio.update(vanillaCall, currentDate, sharesPrices, volatility, riskFreeRate);
+              //  var Val = portefolio.Value;
+            //}
+            //if (dataFeedList[dataFeedList.Count() - 1].PriceList.TryGetValue(shareList[0].Id, out sharePrice))
+            //{
+                //DateTime currentDate = dataFeedList[dataFeedList.Count() - 2].Date;
+                //DateTime followingDate = dataFeedList[dataFeedList.Count() - 1].Date;
+                //int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
+                //double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
+                //riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
+                //System.Collections.Generic.Dictionary<String, double> sharesPricesDictionary = new System.Collections.Generic.Dictionary<String, double>();
+                //sharesPricesDictionary.Add(shareList[0].Id, (double)sharePrice);
+              //  portefolio.computeValue(sharesPricesDictionary, riskFreeRate);
+            //}
+
 
             double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
             Console.WriteLine(portefolio.Value);
