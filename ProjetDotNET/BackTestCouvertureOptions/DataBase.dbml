@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?><Database Name="DotNetDB" Class="DataBaseDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="DotNetDB" Class="DataClasses1DataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
   <Connection Mode="AppSettings" ConnectionString="Data Source=ingefin;Initial Catalog=DotNetDB;User ID=etudiant" SettingsObjectName="BackTestCouvertureOptions.Properties.Settings" SettingsPropertyName="DotNetDBConnectionString" Provider="System.Data.SqlClient" />
   <Table Name="dbo.HistoricalShareValues" Member="HistoricalShareValues">
     <Type Name="HistoricalShareValues">
