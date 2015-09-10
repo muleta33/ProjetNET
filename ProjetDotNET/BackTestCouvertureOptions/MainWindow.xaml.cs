@@ -43,7 +43,7 @@ namespace BackTestCouvertureOptions
             
             
             Share [] shareList= {new Share("ACCOR SA", "BNP FP")};
-            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 100);
+            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 25);
 
 
 
@@ -56,7 +56,7 @@ namespace BackTestCouvertureOptions
 
             PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-            res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, volatility);
+            res = pricer.PriceCall(vanillaCall, initialDate, 365, 50, volatility);
             double delta = res.Deltas[0];
             System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
             sharesQuantities.Add(shareList[0], delta);
