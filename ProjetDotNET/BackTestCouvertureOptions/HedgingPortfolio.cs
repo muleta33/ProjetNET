@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PricingLibrary.FinancialProducts;
 
 namespace BackTestCouvertureOptions
 {
-    class HedgingPortfolio
+    public class HedgingPortfolio
     {
-        private System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> _sharesQuantities;
+        private System.Collections.Generic.Dictionary<string, double> _sharesQuantities;
         private double _riskFreeRateInvestment;
         private double _value;
 
-        public System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> SharesQuantities
+        public System.Collections.Generic.Dictionary<string, double> SharesQuantities
         {
             get { return _sharesQuantities; }
             set { _sharesQuantities = value; }
@@ -30,7 +31,7 @@ namespace BackTestCouvertureOptions
             set { _value = value; }
         }
 
-        public HedgingPortfolio(System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities, double riskFreeRateInvestment)
+        public HedgingPortfolio(System.Collections.Generic.Dictionary<string, double> sharesQuantities, double riskFreeRateInvestment)
         {
             SharesQuantities = sharesQuantities;
             RiskFreeRateInvestment = riskFreeRateInvestment;
@@ -45,32 +46,54 @@ namespace BackTestCouvertureOptions
             
         }
 
-        public void computeValue(System.Collections.Generic.Dictionary<String, double> sharesPrices, double rate)
+        public void computeValue(System.Collections.Generic.Dictionary<String, decimal> sharesPrices, double rate)
         {
             double value = 0;
-            foreach (KeyValuePair<PricingLibrary.FinancialProducts.Share, double> shareQuantity in SharesQuantities)
+            foreach (KeyValuePair<string, double> shareQuantity in SharesQuantities)
             {
-                value = value + sharesPrices[shareQuantity.Key.Id] * shareQuantity.Value;
+                value = value + (double)sharesPrices[shareQuantity.Key] * shareQuantity.Value;
             }
             Value = value + RiskFreeRateInvestment * rate;
         }
 
         // Fonctionne pour call avec un seul sous-jacent
-        private void rebalancing(PricingLibrary.FinancialProducts.VanillaCall call, System.DateTime atTime, System.Collections.Generic.Dictionary<String, double> sharesPrices, double volatility)
+        private void rebalancingPortfolio(Option option, System.DateTime atTime, System.Collections.Generic.Dictionary<String, decimal> sharesPrices, double[] volatilities, double[,] cholesky)
         {
             // ATTENTION, Avant de rebalancer il faut calculer la valeur du portefeuille
 
             // Rebalancement
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-            PricingLibrary.Computations.PricingResults res = pricer.PriceCall(call, atTime, 365, sharesPrices[call.UnderlyingShare.Id], volatility);
-            SharesQuantities[call.UnderlyingShare] = res.Deltas[0];
-            RiskFreeRateInvestment = Value - (SharesQuantities[call.UnderlyingShare] * sharesPrices[call.UnderlyingShare.Id]);
+            // VanillaCall
+            if (option is VanillaCall)
+            {
+                PricingLibrary.Computations.PricingResults res = pricer.PriceCall((VanillaCall)option, atTime, 365, (double)sharesPrices[option.UnderlyingShareIds[0]], volatilities[0]);
+                SharesQuantities[option.UnderlyingShareIds[0]] = res.Deltas[0];
+                RiskFreeRateInvestment = Value - (SharesQuantities[option.UnderlyingShareIds[0]] * (double)sharesPrices[option.UnderlyingShareIds[0]]);
+            }
+            // BasketOPtion
+            else if (option is BasketOption)
+            {
+                double[] spotPrices = new double[sharesPrices.Count];
+                int i = 0;
+                foreach (KeyValuePair<string, decimal> sharePrice in sharesPrices)
+                {
+                    spotPrices[i] = (double)sharePrice.Value;
+                }
+                PricingLibrary.Computations.PricingResults res = pricer.PriceBasket((BasketOption)option, atTime, 365, spotPrices, volatilities, cholesky);
+                double sumValue = 0;
+                for (int j = 0; j < res.Deltas.Length; j++)
+                {
+                    SharesQuantities[option.UnderlyingShareIds[j]] = res.Deltas[j];
+                    sumValue += SharesQuantities[option.UnderlyingShareIds[j]] * (double)sharesPrices[option.UnderlyingShareIds[j]];
+                }
+                RiskFreeRateInvestment = Value - sumValue;
+            }
         }
 
-        public void update(PricingLibrary.FinancialProducts.VanillaCall call, System.DateTime atTime, System.Collections.Generic.Dictionary<String, double> sharesPrices, double volatility, double rate)
+        public void updateCall(Option option, System.DateTime atTime, System.Collections.Generic.Dictionary<String, decimal> sharesPrices, double[] volatilities, double[,] cholesky, double rate)
         {
             computeValue(sharesPrices, rate);
-            rebalancing(call, atTime, sharesPrices, volatility);
+            rebalancingPortfolio(option, atTime, sharesPrices, volatilities, cholesky);
         }
     }
 }

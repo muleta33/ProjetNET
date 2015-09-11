@@ -26,81 +26,182 @@ namespace BackTestCouvertureOptions
     public partial class MainWindow : Window
     {
 
-
-
         public MainWindow()
         {
-           // InitializeComponent();
-            double riskFreeRate = 0;
-            decimal sharePrice = 0;
-            
-            //SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
-            HistoricalDataFeedProvider HistoricalData = new HistoricalDataFeedProvider("HistoricalData", 365);
-            
+            try
+            {
+                // InitializeComponent();
 
-            DateTime maturityDate = new DateTime(2015, 7, 23);
-            DateTime initialDate = HistoricalData.GetMinDate();
+                // Paramètres de l'étude
+                DateTime maturityDate = new DateTime(2014, 7, 23);
+                DateTime initialDate = new DateTime(2013, 9, 19);
+                int window = 10;
+                double strike = 8;
+                Share[] shareList = { new Share("BNP PARIBAS", "BNP FP") };
+                VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, strike);
 
-            //DateTime initialDate = simulatedData.GetMinDate();
-            
-            
-            Share [] shareList= {new Share("ACCOR SA", "BNP FP")};
-            VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, 25);
+                // Récupération des données via le data provider
+                //IDataFeedProvider data = new HistoricalDataFeedProvider("HistoricalData", 365);
+                //checkValidDate(data.GetMinDate(), initialDate, window);
+                IDataFeedProvider data = new SimulatedDataFeedProvider();
+                List<DataFeed> dataFeedList = data.GetDataFeed(vanillaCall, initialDate);
 
+                // Récupération de la volatilité
+                //ShareVolatility shareVolatility = new ShareVolatility(shareList[0].Id, window);
+                //double volatility = shareVolatility.computeVolatility(dataFeedList, initialDate);
+                double[] volatilities = new double[1]; volatilities[0] = 0.4;
+                double[,] cholesky = new double[0,0];
 
+                // Création du portefeuille de couverture
+                HedgingPortfolio portfolio = createPortfolio(vanillaCall, volatilities, initialDate, dataFeedList, data.NumberOfDaysPerYear);
 
-           
-            //List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
-            List<DataFeed> dataFeedList = HistoricalData.GetDataFeed(vanillaCall, initialDate);
+                // Rebalancement du portfeuille au cours du temps
+                double riskFreeRate = 0;
+                for (int i = 0; i < dataFeedList.Count() - 2; i++)
+                {
+                    // Calcul du taux sans risque proratisé
+                    riskFreeRate = computeAccruedRiskFreeRate(dataFeedList[i].Date, dataFeedList[i + 1].Date, data.NumberOfDaysPerYear);
+                    // Rebalancement et actualisation de la valeur du portefeuille
+                    portfolio.updateCall(vanillaCall, dataFeedList[i].Date, dataFeedList[i].PriceList, volatilities, cholesky, riskFreeRate);
+                }
+                // Calcul du taux sans risque proratisé
+                riskFreeRate = computeAccruedRiskFreeRate(dataFeedList[dataFeedList.Count() - 2].Date, dataFeedList[dataFeedList.Count() - 1].Date, data.NumberOfDaysPerYear);
+                // Valeur finale du portefeuille
+                portfolio.computeValue(dataFeedList[dataFeedList.Count() - 2].PriceList, riskFreeRate);
 
-            ShareVolatility shareVolatility = new ShareVolatility(shareList[0].Id, 15, new DateTime(2013, 11, 29));
-            double volatility = shareVolatility.computeVolatility(dataFeedList);
+                // Calcul du PayOff
+                double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
 
+                // Affichage des résultats
+                Console.WriteLine(portfolio.Value);
+                Console.WriteLine(payoff);
+                Console.WriteLine(Math.Abs((portfolio.Value - payoff) / 10));
+            }
+            catch (ParameterException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
 
+        // Calcule le taux sans risque proratisé entre deux dates
+        public double computeAccruedRiskFreeRate(DateTime currentDate, DateTime followingDate, int nbDaysPerYear)
+        {
+            int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
+            double dayDouble = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, nbDaysPerYear);
+            return PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(dayDouble);
+        }
 
+        // cree une option à partir de ses caracteristiques
+        // leve une exception si jamais le sous jacent n'existe pas
+        public Option createOption(String name, System.DateTime maturity, double strike, String[] UnderlyingShareIds, double[] weights)
+        {
+            System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
+            Share[] underlyingShares = new Share[UnderlyingShareIds.Count()];
+            IOption option;
+            using (DataBaseDataContext mtdc = new DataBaseDataContext())
+            {
+                UnderlyingSharesNames = (from s in mtdc.ShareNames where (UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
+            }
+            for (int index = 0; index < UnderlyingSharesNames.Count; index++)
+            {
+                var item = UnderlyingSharesNames.ElementAt(index);
+                String itemKey = item.Key;
+                String itemValue = item.Value;
+                Share share = new Share(itemKey, itemValue);
+                underlyingShares[index] = share;
+            }
+            if (UnderlyingSharesNames.Count() > 1)
+            {
+                option = new BasketOption(name, underlyingShares, weights, maturity, strike);
+            }
+            else if (UnderlyingSharesNames.Count() == 1)
+            {
+                option = new VanillaCall(name, underlyingShares, maturity, strike);
+            }
+            else
+            {
+                throw new ParameterException("Share Id not found.");
+            }
+            return (Option)option;
+        }
 
+        private void checkValidDate(DateTime minDate, DateTime initialDate, int window)
+        {
+            TimeSpan ts = initialDate - minDate;
+            int dif = ts.Days;
+            if (dif <= 0)
+            {
+                throw new ParameterException("The initial date is lower than the first available data date");
+            }
+            dif = PricingLibrary.Utilities.DayCount.CountBusinessDays(minDate, initialDate);
+            if (dif < window)
+            {
+                throw new ParameterException("The estimation window is too large");
+            }
+        }
+
+        public double[] spotShare(System.DateTime date, List<DataFeed> dataFeedList)
+        {
+            if (!dataFeedList.Any(dataFeed => dataFeed.Date == date))
+            {
+                throw new ParameterException("Not a business date.");
+            }
+            int index = dataFeedList.FindIndex(dataFeed => dataFeed.Date == date);
+            double[] spots = new double[dataFeedList[index].PriceList.Count];
+            int i = 0;
+            foreach (KeyValuePair<string, decimal> spot in dataFeedList[index].PriceList)
+            {
+                spots[i] = (double)spot.Value;
+            }
+            return spots;
+        }
+
+        // Initialisation du portefeuille
+        public HedgingPortfolio createPortfolio(Option option, double[] volatilities, DateTime initialDate, List<DataFeed> dataFeedList, int nbDaysPerYear)
+        {
             PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-            res = pricer.PriceCall(vanillaCall, initialDate, 365, 50, volatility);
-            double delta = res.Deltas[0];
-            System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
-            sharesQuantities.Add(shareList[0], delta);
-            double riskFreeRateInvestment = res.Price - delta * (double)dataFeedList[0].PriceList[shareList[0].Id];
-            HedgingPortfolio portefolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
-
-            
-            for (int i=0; i < dataFeedList.Count() - 2; i++)
+            double[] spots = spotShare(initialDate, dataFeedList);
+            if (option is VanillaCall)
             {
-                DateTime currentDate = dataFeedList[i].Date;
-                DateTime followingDate = dataFeedList[i + 1].Date;
-                int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-                double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-                riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-                bool existValue = dataFeedList[i].PriceList.TryGetValue(shareList[0].Id, out sharePrice);
-                System.Collections.Generic.Dictionary<String, double> sharesPrices = new System.Collections.Generic.Dictionary<String, double>();
-                sharesPrices.Add(shareList[0].Id, (double)sharePrice);
-                portefolio.update(vanillaCall, currentDate, sharesPrices, volatility, riskFreeRate);
-                var Val = portefolio.Value;
+                res = pricer.PriceCall((VanillaCall)option, initialDate, nbDaysPerYear, spots[0], volatilities[0]);
             }
-            if (dataFeedList[dataFeedList.Count() - 1].PriceList.TryGetValue(shareList[0].Id, out sharePrice))
+            else if (option is BasketOption)
             {
-                DateTime currentDate = dataFeedList[dataFeedList.Count() - 2].Date;
-                DateTime followingDate = dataFeedList[dataFeedList.Count() - 1].Date;
-                int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-                double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-                riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-                System.Collections.Generic.Dictionary<String, double> sharesPricesDictionary = new System.Collections.Generic.Dictionary<String, double>();
-                sharesPricesDictionary.Add(shareList[0].Id, (double)sharePrice);
-                portefolio.computeValue(sharesPricesDictionary, riskFreeRate);
+                double[,] cholesky = new double[0, 0];
+                res = pricer.PriceBasket((BasketOption)option, initialDate, nbDaysPerYear, spots, volatilities, cholesky);
             }
+            System.Collections.Generic.Dictionary<string, double> sharesQuantities = new System.Collections.Generic.Dictionary<string, double>();
+            double portfolioSharesValue = 0;
+            for (int i = 0; i < res.Deltas.Length; i++)
+            {
+                Share[] shares = optionshare(option);
+                sharesQuantities.Add(shares[i].Id, res.Deltas[i]);
+                portfolioSharesValue += res.Deltas[i] * spots[i];
+            }
+            double riskFreeRateInvestment = res.Price - portfolioSharesValue;
+            HedgingPortfolio portfolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
+            return portfolio;
+        }
 
-
-            double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
-            Console.WriteLine(portefolio.Value);
-            Console.WriteLine(payoff);
-            Console.WriteLine(Math.Abs((portefolio.Value - payoff) / 10));
-
-
+        // retourne les sous jacents d'une option
+        public Share[] optionshare(Option option)
+        {
+            Share[] underlyingShares = new Share[option.UnderlyingShareIds.Count()];
+            System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
+            using (DataBaseDataContext mtdc = new DataBaseDataContext())
+            {
+                UnderlyingSharesNames = (from s in mtdc.ShareNames where (option.UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
+            }
+            for (int index = 0; index < UnderlyingSharesNames.Count; index++)
+            {
+                var item = UnderlyingSharesNames.ElementAt(index);
+                String itemKey = item.Key;
+                String itemValue = item.Value.TrimEnd();
+                Share share = new Share(itemKey, itemValue);
+                underlyingShares[index] = share;
+            }
+            return underlyingShares;
         }
     }
 }
