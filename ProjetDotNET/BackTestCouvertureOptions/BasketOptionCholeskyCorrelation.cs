@@ -38,6 +38,19 @@ namespace BackTestCouvertureOptions
             set { _choleskyCorrelation = value; }
         }
 
+        public double[] computeVolatilities(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime estimationDate)
+        {
+            double[] volatilities = new double[Ids.Count];
+            int volatilitiesIndex = 0;
+            foreach (String id in Ids)
+            {
+                ShareParameters shareParameters = new ShareParameters(id, WindowLength);
+                volatilities[volatilitiesIndex] = shareParameters.computeVolatility(dataFeedList, estimationDate);
+                ++volatilitiesIndex;
+            }
+            return volatilities;
+        }
+
         // import WRE dll
         [DllImport("wre-ensimag-c-4.1.dll", EntryPoint = "WREmodelingCov")]
 

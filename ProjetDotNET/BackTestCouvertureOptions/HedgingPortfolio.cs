@@ -78,6 +78,7 @@ namespace BackTestCouvertureOptions
                 foreach (KeyValuePair<string, decimal> sharePrice in sharesPrices)
                 {
                     spotPrices[i] = (double)sharePrice.Value;
+                    ++i;
                 }
                 PricingLibrary.Computations.PricingResults res = pricer.PriceBasket((BasketOption)option, atTime, 365, spotPrices, volatilities, cholesky);
                 double sumValue = 0;
