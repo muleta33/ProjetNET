@@ -72,7 +72,7 @@ namespace BackTestCouvertureOptions
             double[,] returns = new double[WindowLength - 1, Ids.Count];
             for (int shareIndex = 0; shareIndex < Ids.Count; ++shareIndex)
             {
-                ShareVolatility shareVolatility = new ShareVolatility(Ids[shareIndex], WindowLength);
+                ShareParameters shareVolatility = new ShareParameters(Ids[shareIndex], WindowLength);
                 double[] shareReturns = shareVolatility.computeShareReturns(dataFeedList, estimationDate);
                 for (int i = 0; i < shareReturns.Length; ++i)
                 {

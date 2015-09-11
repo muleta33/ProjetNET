@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace BackTestCouvertureOptions
 {
-    class ShareVolatility
+    class ShareParameters
     {
         private String _id;
         private int _windowLength;
@@ -31,7 +31,7 @@ namespace BackTestCouvertureOptions
             set { _volatility = value; }
         }
 
-        public ShareVolatility(String id, int windowLength)
+        public ShareParameters(String id, int windowLength)
         {
             Id = id;
             WindowLength = windowLength;
