@@ -9,6 +9,9 @@ using PricingLibrary.Utilities.MarketDataFeed;
 using PricingLibrary.FinancialProducts;
 using PricingLibrary.Computations;
 using System.Windows.Documents;
+using System.ComponentModel;
+using OxyPlot;
+using OxyPlot.Axes;
 
 namespace BackTestCouvertureOptions
 {
@@ -19,6 +22,13 @@ namespace BackTestCouvertureOptions
         private string _results;
         private double _strike = 10;
         private string _maturity = "01/01/2013";
+        private PlotModel _plotModel;
+
+        public PlotModel PlotModel
+        {
+            get { return _plotModel; }
+            set { SetProperty(ref _plotModel, value); } 
+        }
 
         private bool TickerStarted
         {
@@ -66,6 +76,8 @@ namespace BackTestCouvertureOptions
 
         public MainWindowViewModel()
         {
+            PlotModel = new PlotModel();
+            SetUpModel();
             StartCommand = new DelegateCommand(StartTicker, CanStartTicker);           
         }
 
@@ -74,55 +86,24 @@ namespace BackTestCouvertureOptions
             return !TickerStarted;
         }
 
+        private void SetUpModel()
+        {
+            PlotModel.LegendTitle = "Legend";
+            PlotModel.LegendOrientation = LegendOrientation.Horizontal;
+            PlotModel.LegendPlacement = LegendPlacement.Outside;
+            PlotModel.LegendPosition = LegendPosition.TopRight;
+            PlotModel.LegendBackground = OxyColor.FromAColor(200, OxyColors.White);
+            PlotModel.LegendBorder = OxyColors.Black;
+
+            DateTimeAxis dateAxis = new DateTimeAxis(AxisPosition.Bottom, "Date", "dd/MM/yy HH:mm") { MajorGridlineStyle = LineStyle.Solid, MinorGridlineStyle = LineStyle.Dot, IntervalLength = 80 };
+            PlotModel.Axes.Add(dateAxis);
+            LinearAxis valueAxis = new LinearAxis(AxisPosition.Left, 0) { MajorGridlineStyle = LineStyle.Solid, MinorGridlineStyle = LineStyle.Dot, Title = "Value" };
+            PlotModel.Axes.Add(valueAxis);
+        }
+
         private void StartTicker()
         {
-        //    double riskFreeRate = 0;
-        //    decimal sharePrice = 0;
-
-        //    SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
-        //    DateTime maturityDate = Convert.ToDateTime(Maturity);
-        //    DateTime initialDate = simulatedData.GetMinDate();
-        //    Share [] shareList= {new Share("ALO FP", "ACCOR SA")};
-        //    VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, Strike);
-        //    List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
-
-        //    PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
-        //    PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-        //    res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, 0.4);
-        //    double delta = res.Deltas[0];
-        //    System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
-        //    sharesQuantities.Add(shareList[0], delta);
-        //    double riskFreeRateInvestment = res.Price - delta * (double)dataFeedList[0].PriceList[shareList[0].Id];
-        //    HedgingPortfolio portefolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
-
-        //    double volatility = 0.4;
-        //    for (int i=0; i < dataFeedList.Count() - 2; i++)
-        //    {
-        //        DateTime currentDate = dataFeedList[i].Date;
-        //        DateTime followingDate = dataFeedList[i + 1].Date;
-        //        int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-        //        double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-        //        riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-        //        bool existValue = dataFeedList[i].PriceList.TryGetValue(shareList[0].Id, out sharePrice);
-        //        System.Collections.Generic.Dictionary<String, double> sharesPrices = new System.Collections.Generic.Dictionary<String, double>();
-        //        sharesPrices.Add(shareList[0].Id, (double)sharePrice);
-        //        portefolio.update(vanillaCall, currentDate, sharesPrices, volatility, riskFreeRate);
-        //    }
-        //    if (dataFeedList[dataFeedList.Count() - 1].PriceList.TryGetValue(shareList[0].Id, out sharePrice))
-        //    {
-        //        DateTime currentDate = dataFeedList[dataFeedList.Count() - 2].Date;
-        //        DateTime followingDate = dataFeedList[dataFeedList.Count() - 1].Date;
-        //        int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-        //        double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-        //        riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-        //        System.Collections.Generic.Dictionary<String, double> sharesPricesDictionary = new System.Collections.Generic.Dictionary<String, double>();
-        //        sharesPricesDictionary.Add(shareList[0].Id, (double)sharePrice);
-        //        portefolio.computeValue(sharesPricesDictionary, riskFreeRate);
-        //    }
-
-        //    double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
-        //    double gap = (portefolio.Value - payoff) / Strike;
-        //    Results = Convert.ToString(portefolio.Value) + "\n" + Convert.ToString(payoff) + "\n" + Convert.ToString(gap);
+            
         }
 
     }
