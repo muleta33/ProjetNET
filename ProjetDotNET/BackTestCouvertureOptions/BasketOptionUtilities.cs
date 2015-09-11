@@ -16,8 +16,7 @@ namespace BackTestCouvertureOptions
             int volatilitiesIndex = 0;
             foreach (KeyValuePair<string, decimal> shareSpot in dataFeedList[0].PriceList)
             {
-                ShareParameters shareParameters = new ShareParameters(shareSpot.Key, windowLength);
-                volatilities[volatilitiesIndex] = shareParameters.computeVolatility(dataFeedList, date);
+                volatilities[volatilitiesIndex] = ShareUtilities.computeVolatility(dataFeedList, date, shareSpot.Key, windowLength, numberDaysPerYear);
                 ++volatilitiesIndex;
             }
             return volatilities;
