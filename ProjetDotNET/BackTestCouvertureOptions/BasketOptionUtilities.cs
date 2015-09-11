@@ -63,6 +63,7 @@ namespace BackTestCouvertureOptions
                 {
                     returns[i, shareIndex] = shareReturns[i];
                 }
+                ++shareIndex;
             }
             return returns;
         }

@@ -147,17 +147,80 @@ namespace BackTestCouvertureOptions
 
         private void StartTicker()
         {
-            // ----------- Test Basket Option donnees simulees -------- 
+            //// ----------- Test Basket Option donnees simulees -------- 
+            //// Recuperation des donnees
+            //DateTime maturity = new DateTime(2014, 12, 20);
+            //DateTime initialDate = new DateTime(2013, 1, 20);
+            //DateTime estimationDate = new DateTime(2013, 1, 5);
+            //int windowLength = 15;
+            //double strike = 8;
+            //Share[] shareList = { new Share("BNP Paribas", "BNP FP"),
+            //                        new Share("ACCOR SA", "ALO FP") };
+            //double[] weights = { 0.4, 0.6 };
+            //BasketOption basketOption = new BasketOption("Basket Option", shareList, weights, maturity, strike);
+
+            //IDataFeedProvider data = new SimulatedDataFeedProvider();
+            //List<DataFeed> dataFeedList = data.GetDataFeed(basketOption, estimationDate);
+
+            //// Creation du portefeuille
+            //CompositionProvider compositionProvider = new BasketCompositionProvider(basketOption);
+            //PricingResults pricingResults = compositionProvider.getComposition(dataFeedList, initialDate, windowLength, data.NumberOfDaysPerYear);
+            //HedgingPortfolio portfolio = createPortfolio(basketOption, pricingResults, dataFeedList, initialDate);
+
+            //// Rebalancement du portfeuille au cours du temps
+            //double riskFreeRate = 0;
+            //for (int i = windowLength; i < dataFeedList.Count() - 2; i++)
+            //{
+            //    // Calcul du taux sans risque proratisé
+            //    riskFreeRate = Utilities.computeAccruedRiskFreeRate(dataFeedList[i].Date, dataFeedList[i + 1].Date, data.NumberOfDaysPerYear, false);
+
+            //    // Rebalancement et actualisation de la valeur du portefeuille
+            //    pricingResults = compositionProvider.getComposition(dataFeedList, dataFeedList[i].Date, windowLength, data.NumberOfDaysPerYear);
+            //    portfolio.update(dataFeedList[i].PriceList, pricingResults.Deltas, riskFreeRate);
+            //    ResultValue curentValue = new ResultValue(pricingResults.Price, portfolio.Value);
+            //    Results.Add(dataFeedList[i].Date, curentValue);
+            //}
+            //// Calcul du taux sans risque proratisé
+            //riskFreeRate = Utilities.computeAccruedRiskFreeRate(dataFeedList[dataFeedList.Count() - 2].Date, dataFeedList[dataFeedList.Count() - 1].Date, data.NumberOfDaysPerYear, false);
+            //// Valeur finale du portefeuille
+            //portfolio.computeValue(dataFeedList[dataFeedList.Count() - 1].PriceList, riskFreeRate);
+            //ResultValue finalValue = new ResultValue(basketOption.GetPayoff(dataFeedList.Last().PriceList), portfolio.Value);
+            //Results.Add(dataFeedList.Last().Date, finalValue);
+
+            //// Calcul du PayOff
+            //double payoff = basketOption.GetPayoff(dataFeedList.Last().PriceList);
+
+            //Console.WriteLine(portfolio.Value);
+            //Console.WriteLine(payoff);
+            //Console.WriteLine(Math.Abs((portfolio.Value - payoff) / 10));
+
+            //// Tracé du plot
+            //PlotModel.InvalidatePlot(true);
+            //LoadData();
+            //PlotModel.InvalidatePlot(true);
+
+            // ----------- Test Basket Option donnees historiques -------- 
             // Recuperation des donnees
             DateTime maturity = new DateTime(2014, 12, 20);
             DateTime initialDate = new DateTime(2013, 1, 20);
             DateTime estimationDate = new DateTime(2013, 1, 5);
             int windowLength = 15;
-            double strike = 50;
+            double strike = 8;
             Share[] shareList = { new Share("BNP Paribas", "BNP FP"),
                                     new Share("ACCOR SA", "ALO FP") };
             double[] weights = { 0.4, 0.6 };
             BasketOption basketOption = new BasketOption("Basket Option", shareList, weights, maturity, strike);
+
+            // Recuperation de la date de debut d'estimation (pour volatilite)
+            // Check validDate doit être appelé avant
+            System.Collections.Generic.List<DateTime> datesBeforeInitialDate = new System.Collections.Generic.List<DateTime>();
+            using (DataBaseDataContext mtdc = new DataBaseDataContext())
+            {
+                datesBeforeInitialDate = (from historical in mtdc.HistoricalShareValues
+                                          where (historical.date <= initialDate)
+                                          select historical.date).Distinct().OrderByDescending(date => date).ToList();
+            }
+            DateTime estimationBeginDate = datesBeforeInitialDate[windowLength];
 
             IDataFeedProvider data = new SimulatedDataFeedProvider();
             List<DataFeed> dataFeedList = data.GetDataFeed(basketOption, estimationDate);
