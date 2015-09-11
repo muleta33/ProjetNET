@@ -4,7 +4,7 @@
         xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:oxy="http://oxyplot.org/wpf"
         Title="MainWindow" Height="763.25" Width="430">
-    <Grid>
+    <Grid Margin="10,0,2,10">
         <Button Command="{Binding StartCommand}" x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="202,160,0,0" VerticalAlignment="Top" Width="75"/>
         <DockPanel HorizontalAlignment="Left" Height="110" Margin="26,10,0,0" VerticalAlignment="Top" Width="310">
             <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Text="Option Settings" HorizontalAlignment="Center" Margin="118,0,104,5" Width="88" Height="19"/>

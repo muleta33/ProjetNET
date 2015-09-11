@@ -9,6 +9,7 @@ using PricingLibrary.Utilities.MarketDataFeed;
 using PricingLibrary.FinancialProducts;
 using PricingLibrary.Computations;
 using System.Windows.Documents;
+using System.ComponentModel;
 using OxyPlot;
 using OxyPlot.Axes;
 
@@ -26,6 +27,7 @@ namespace BackTestCouvertureOptions
         public PlotModel PlotModel
         {
             get { return _plotModel; }
+
             set { SetProperty(ref _plotModel, value); }
         }
 
@@ -127,6 +129,22 @@ namespace BackTestCouvertureOptions
             return !TickerStarted;
         }
 
+        public HedgingPortfolio createPortfolio(Option option, PricingResults pricingResults, List<DataFeed> dataFeedList, DateTime date)
+        {
+            System.Collections.Generic.Dictionary<string, double> sharesQuantities = new System.Collections.Generic.Dictionary<string, double>();
+
+            double[] shareSpots = Utilities.shareSpots(dataFeedList, date);
+            double portfolioSharesValue = 0;
+            for (int i = 0; i < pricingResults.Deltas.Length; i++)
+            {
+                sharesQuantities.Add(option.UnderlyingShareIds[i], pricingResults.Deltas[i]);
+                portfolioSharesValue += pricingResults.Deltas[i] * shareSpots[i];
+            }
+            double riskFreeRateInvestment = pricingResults.Price - portfolioSharesValue;
+            HedgingPortfolio portfolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
+            return portfolio;
+        }
+
         private void StartTicker()
         {
             // ----------- Test Basket Option donnees simulees -------- 
@@ -180,23 +198,6 @@ namespace BackTestCouvertureOptions
             PlotModel.InvalidatePlot(true);
             LoadData();
             PlotModel.InvalidatePlot(true);
-
-        }
-
-        public HedgingPortfolio createPortfolio(Option option, PricingResults pricingResults, List<DataFeed> dataFeedList, DateTime date)
-        {
-            System.Collections.Generic.Dictionary<string, double> sharesQuantities = new System.Collections.Generic.Dictionary<string, double>();
-
-            double[] shareSpots = Utilities.shareSpots(dataFeedList, date);
-            double portfolioSharesValue = 0;
-            for (int i = 0; i < pricingResults.Deltas.Length; i++)
-            {
-                sharesQuantities.Add(option.UnderlyingShareIds[i], pricingResults.Deltas[i]);
-                portfolioSharesValue += pricingResults.Deltas[i] * shareSpots[i];
-            }
-            double riskFreeRateInvestment = pricingResults.Price - portfolioSharesValue;
-            HedgingPortfolio portfolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
-            return portfolio;
         }
 
     }
