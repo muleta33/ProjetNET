@@ -68,7 +68,7 @@ namespace BackTestCouvertureOptions
             return expostVolatility;
         }
 
-        private double[] computeShareReturns(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime date)
+        public double[] computeShareReturns(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime date)
         {
             double[] shareReturns = new double[WindowLength - 1];
 
