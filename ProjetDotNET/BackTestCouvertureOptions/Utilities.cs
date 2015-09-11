@@ -35,5 +35,24 @@ namespace BackTestCouvertureOptions
             }
             return spots;
         }
+
+        public System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share> getUnderlyingShares(PricingLibrary.FinancialProducts.Option option)
+        {
+            System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share> underlyingShares = new System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share>();
+            System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
+            using (DataBaseDataContext mtdc = new DataBaseDataContext())
+            {
+                UnderlyingSharesNames = (from s in mtdc.ShareNames where (option.UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
+            }
+            for (int index = 0; index < UnderlyingSharesNames.Count; index++)
+            {
+                var item = UnderlyingSharesNames.ElementAt(index);
+                String itemKey = item.Key;
+                String itemValue = item.Value.TrimEnd();
+                PricingLibrary.FinancialProducts.Share share = new PricingLibrary.FinancialProducts.Share(itemKey, itemValue);
+                underlyingShares[index] = share;
+            }
+            return underlyingShares;
+        }
     }
 }

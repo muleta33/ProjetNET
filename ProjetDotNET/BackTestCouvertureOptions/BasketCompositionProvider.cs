@@ -8,9 +8,11 @@ namespace BackTestCouvertureOptions
 {
     class BasketCompositionProvider : CompositionProvider
     {
+        private PricingLibrary.FinancialProducts.BasketOption _basketOption;
+
         public BasketCompositionProvider(PricingLibrary.FinancialProducts.BasketOption basketOption)
         {
-            Option = basketOption;
+            _basketOption = basketOption;
         }
 
         public override PricingLibrary.Computations.PricingResults getComposition(List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime date, int windowLength, int numberDaysPerYear)
@@ -20,8 +22,7 @@ namespace BackTestCouvertureOptions
 
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
             double[] spotShareArray = Utilities.shareSpots(dataFeedList, date);
-            // Eviter cast ???
-            PricingLibrary.Computations.PricingResults pricingResults = pricer.PriceBasket((PricingLibrary.FinancialProducts.BasketOption)Option, date, numberDaysPerYear, spotShareArray, volatilities, cholesky);
+            PricingLibrary.Computations.PricingResults pricingResults = pricer.PriceBasket(_basketOption, date, numberDaysPerYear, spotShareArray, volatilities, cholesky);
             return pricingResults;
         }
     }
