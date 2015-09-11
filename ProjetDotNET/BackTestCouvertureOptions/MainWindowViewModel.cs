@@ -9,6 +9,8 @@ using PricingLibrary.Utilities.MarketDataFeed;
 using PricingLibrary.FinancialProducts;
 using PricingLibrary.Computations;
 using System.Windows.Documents;
+using OxyPlot;
+using OxyPlot.Axes;
 
 namespace BackTestCouvertureOptions
 {
@@ -16,9 +18,16 @@ namespace BackTestCouvertureOptions
     {
         private bool tickerStarted;
         private List<String> _property;
-        private string _results;
         private double _strike = 10;
         private string _maturity = "01/01/2013";
+        private PlotModel _plotModel;
+        private System.Collections.Generic.Dictionary<System.DateTime, ResultValue> _results = new System.Collections.Generic.Dictionary<System.DateTime, ResultValue>();
+
+        public PlotModel PlotModel
+        {
+            get { return _plotModel; }
+            set { SetProperty(ref _plotModel, value); }
+        }
 
         private bool TickerStarted
         {
@@ -30,7 +39,7 @@ namespace BackTestCouvertureOptions
             }
         }
 
-        public string Results
+        public System.Collections.Generic.Dictionary<System.DateTime, ResultValue> Results
         {
             get { return _results; }
             set {SetProperty(ref _results, value);} 
@@ -66,7 +75,51 @@ namespace BackTestCouvertureOptions
 
         public MainWindowViewModel()
         {
+            PlotModel = new PlotModel();
+            SetUpModel();
             StartCommand = new DelegateCommand(StartTicker, CanStartTicker);           
+        }
+
+        private void SetUpModel()
+        {
+            PlotModel.LegendTitle = "Legend";
+            PlotModel.LegendOrientation = LegendOrientation.Horizontal;
+            PlotModel.LegendPlacement = LegendPlacement.Outside;
+            PlotModel.LegendPosition = LegendPosition.TopRight;
+            PlotModel.LegendBackground = OxyColor.FromAColor(200, OxyColors.White);
+            PlotModel.LegendBorder = OxyColors.Black;
+
+            DateTimeAxis dateAxis = new DateTimeAxis(AxisPosition.Bottom, "Date", "dd/MM/yy HH:mm") { MajorGridlineStyle = LineStyle.Solid, MinorGridlineStyle = LineStyle.Dot, IntervalLength = 80 };
+            PlotModel.Axes.Add(dateAxis);
+            LinearAxis valueAxis = new LinearAxis(AxisPosition.Left, 0) { MajorGridlineStyle = LineStyle.Solid, MinorGridlineStyle = LineStyle.Dot, Title = "Value" };
+            PlotModel.Axes.Add(valueAxis);
+        }
+
+        private void LoadData()
+        {
+            var lineSerie1 = new OxyPlot.Series.LineSeries
+            {
+                StrokeThickness = 2,
+                MarkerSize = 3,
+                CanTrackerInterpolatePoints = false,
+                Smooth = false,
+            };
+
+            var lineSerie2 = new OxyPlot.Series.LineSeries
+            {
+                StrokeThickness = 2,
+                MarkerSize = 3,
+                CanTrackerInterpolatePoints = false,
+                Smooth = false,
+            };
+
+            foreach (var data in Results)
+            {
+                lineSerie1.Points.Add(new DataPoint(DateTimeAxis.ToDouble(data.Key), data.Value.PortfolioValue));
+                lineSerie2.Points.Add(new DataPoint(DateTimeAxis.ToDouble(data.Key), data.Value.PayOff));
+            }
+            PlotModel.Series.Add(lineSerie1);
+            PlotModel.Series.Add(lineSerie2);
         }
 
         private bool CanStartTicker()
@@ -76,53 +129,74 @@ namespace BackTestCouvertureOptions
 
         private void StartTicker()
         {
-        //    double riskFreeRate = 0;
-        //    decimal sharePrice = 0;
+            // ----------- Test Basket Option donnees simulees -------- 
+            // Recuperation des donnees
+            DateTime maturity = new DateTime(2014, 12, 20);
+            DateTime initialDate = new DateTime(2013, 1, 20);
+            DateTime estimationDate = new DateTime(2013, 1, 5);
+            int windowLength = 15;
+            double strike = 50;
+            Share[] shareList = { new Share("BNP Paribas", "BNP FP"),
+                                    new Share("ACCOR SA", "ALO FP") };
+            double[] weights = { 0.4, 0.6 };
+            BasketOption basketOption = new BasketOption("Basket Option", shareList, weights, maturity, strike);
 
-        //    SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
-        //    DateTime maturityDate = Convert.ToDateTime(Maturity);
-        //    DateTime initialDate = simulatedData.GetMinDate();
-        //    Share [] shareList= {new Share("ALO FP", "ACCOR SA")};
-        //    VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, Strike);
-        //    List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
+            IDataFeedProvider data = new SimulatedDataFeedProvider();
+            List<DataFeed> dataFeedList = data.GetDataFeed(basketOption, estimationDate);
 
-        //    PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
-        //    PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-        //    res = pricer.PriceCall(vanillaCall, initialDate, 365, 10, 0.4);
-        //    double delta = res.Deltas[0];
-        //    System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double> sharesQuantities = new System.Collections.Generic.Dictionary<PricingLibrary.FinancialProducts.Share, double>();
-        //    sharesQuantities.Add(shareList[0], delta);
-        //    double riskFreeRateInvestment = res.Price - delta * (double)dataFeedList[0].PriceList[shareList[0].Id];
-        //    HedgingPortfolio portefolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
+            // Creation du portefeuille
+            CompositionProvider compositionProvider = new BasketCompositionProvider(basketOption);
+            PricingResults pricingResults = compositionProvider.getComposition(dataFeedList, initialDate, windowLength, data.NumberOfDaysPerYear);
+            HedgingPortfolio portfolio = createPortfolio(basketOption, pricingResults, dataFeedList, initialDate);
 
-        //    double volatility = 0.4;
-        //    for (int i=0; i < dataFeedList.Count() - 2; i++)
-        //    {
-        //        DateTime currentDate = dataFeedList[i].Date;
-        //        DateTime followingDate = dataFeedList[i + 1].Date;
-        //        int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-        //        double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-        //        riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-        //        bool existValue = dataFeedList[i].PriceList.TryGetValue(shareList[0].Id, out sharePrice);
-        //        System.Collections.Generic.Dictionary<String, double> sharesPrices = new System.Collections.Generic.Dictionary<String, double>();
-        //        sharesPrices.Add(shareList[0].Id, (double)sharePrice);
-        //        portefolio.update(vanillaCall, currentDate, sharesPrices, volatility, riskFreeRate);
-        //    }
-        //    if (dataFeedList[dataFeedList.Count() - 1].PriceList.TryGetValue(shareList[0].Id, out sharePrice))
-        //    {
-        //        DateTime currentDate = dataFeedList[dataFeedList.Count() - 2].Date;
-        //        DateTime followingDate = dataFeedList[dataFeedList.Count() - 1].Date;
-        //        int nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-        //        double timespan = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, 365);
-        //        riskFreeRate = PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(timespan);
-        //        System.Collections.Generic.Dictionary<String, double> sharesPricesDictionary = new System.Collections.Generic.Dictionary<String, double>();
-        //        sharesPricesDictionary.Add(shareList[0].Id, (double)sharePrice);
-        //        portefolio.computeValue(sharesPricesDictionary, riskFreeRate);
-        //    }
+            // Rebalancement du portfeuille au cours du temps
+            double riskFreeRate = 0;
+            for (int i = windowLength; i < dataFeedList.Count() - 2; i++)
+            {
+                // Calcul du taux sans risque proratisé
+                riskFreeRate = Utilities.computeAccruedRiskFreeRate(dataFeedList[i].Date, dataFeedList[i + 1].Date, data.NumberOfDaysPerYear, false);
 
-        //    double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
-        //    double gap = (portefolio.Value - payoff) / Strike;
-        //    Results = Convert.ToString(portefolio.Value) + "\n" + Convert.ToString(payoff) + "\n" + Convert.ToString(gap);
+                // Rebalancement et actualisation de la valeur du portefeuille
+                pricingResults = compositionProvider.getComposition(dataFeedList, dataFeedList[i].Date, windowLength, data.NumberOfDaysPerYear);
+                portfolio.update(dataFeedList[i].PriceList, pricingResults.Deltas, riskFreeRate);
+                ResultValue curentValue = new ResultValue(pricingResults.Price, portfolio.Value);
+                Results.Add(dataFeedList[i].Date, curentValue);
+            }
+            // Calcul du taux sans risque proratisé
+            riskFreeRate = Utilities.computeAccruedRiskFreeRate(dataFeedList[dataFeedList.Count() - 2].Date, dataFeedList[dataFeedList.Count() - 1].Date, data.NumberOfDaysPerYear, false);
+            // Valeur finale du portefeuille
+            portfolio.computeValue(dataFeedList[dataFeedList.Count() - 1].PriceList, riskFreeRate);
+            ResultValue finalValue = new ResultValue(basketOption.GetPayoff(dataFeedList.Last().PriceList), portfolio.Value);
+            Results.Add(dataFeedList.Last().Date, finalValue);
+
+            // Calcul du PayOff
+            double payoff = basketOption.GetPayoff(dataFeedList.Last().PriceList);
+
+            Console.WriteLine(portfolio.Value);
+            Console.WriteLine(payoff);
+            Console.WriteLine(Math.Abs((portfolio.Value - payoff) / 10));
+
+            // Tracé du plot
+            PlotModel.InvalidatePlot(true);
+            LoadData();
+            PlotModel.InvalidatePlot(true);
+
+        }
+
+        public HedgingPortfolio createPortfolio(Option option, PricingResults pricingResults, List<DataFeed> dataFeedList, DateTime date)
+        {
+            System.Collections.Generic.Dictionary<string, double> sharesQuantities = new System.Collections.Generic.Dictionary<string, double>();
+
+            double[] shareSpots = Utilities.shareSpots(dataFeedList, date);
+            double portfolioSharesValue = 0;
+            for (int i = 0; i < pricingResults.Deltas.Length; i++)
+            {
+                sharesQuantities.Add(option.UnderlyingShareIds[i], pricingResults.Deltas[i]);
+                portfolioSharesValue += pricingResults.Deltas[i] * shareSpots[i];
+            }
+            double riskFreeRateInvestment = pricingResults.Price - portfolioSharesValue;
+            HedgingPortfolio portfolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
+            return portfolio;
         }
 
     }
