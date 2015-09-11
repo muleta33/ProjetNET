@@ -37,8 +37,10 @@ namespace BackTestCouvertureOptions
             //SimulatedDataFeedProvider simulatedData = new SimulatedDataFeedProvider();
             HistoricalDataFeedProvider HistoricalData = new HistoricalDataFeedProvider("HistoricalData", 365);
             
-            DateTime maturityDate = new DateTime(2014, 7, 23);
-            DateTime initialDate = new DateTime(2013, 9, 18);
+
+            DateTime maturityDate = new DateTime(2015, 7, 23);
+            DateTime initialDate = HistoricalData.GetMinDate();
+
             //DateTime initialDate = simulatedData.GetMinDate();
             
             
@@ -49,10 +51,13 @@ namespace BackTestCouvertureOptions
 
            
             //List<DataFeed> dataFeedList = simulatedData.GetDataFeed(vanillaCall, initialDate);
-            List<DataFeed> dataFeedList = HistoricalData.GetHistoricalDataFeed(vanillaCall, initialDate);
+            List<DataFeed> dataFeedList = HistoricalData.GetDataFeed(vanillaCall, initialDate);
 
             ShareVolatility shareVolatility = new ShareVolatility(shareList[0].Id, 15, new DateTime(2013, 11, 29));
             double volatility = shareVolatility.computeVolatility(dataFeedList);
+
+
+
 
             PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
@@ -88,6 +93,7 @@ namespace BackTestCouvertureOptions
                 sharesPricesDictionary.Add(shareList[0].Id, (double)sharePrice);
                 portefolio.computeValue(sharesPricesDictionary, riskFreeRate);
             }
+
 
             double payoff = vanillaCall.GetPayoff(dataFeedList.Last().PriceList);
             Console.WriteLine(portefolio.Value);
