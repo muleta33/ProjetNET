@@ -26,23 +26,16 @@ namespace BackTestCouvertureOptions
             set { _windowLength = value; }
         }
 
-        public DateTime EstimationDate
-        {
-            get { return _estimationDate; }
-            set { _estimationDate = value; }
-        }
-
         public double Volatility
         {
             get { return _volatility; }
             set { _volatility = value; }
         }
 
-        public ShareVolatility(String id, int windowLength, DateTime estimationDate)
+        public ShareVolatility(String id, int windowLength)
         {
             Id = id;
             WindowLength = windowLength;
-            EstimationDate = estimationDate;
             Volatility = 0;
         }
 
@@ -56,9 +49,9 @@ namespace BackTestCouvertureOptions
             ref int info
         );
 
-        public double computeVolatility(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList)
+        public double computeVolatility(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime date)
         {
-            double[] shareReturns = computeShareReturns(dataFeedList);
+            double[] shareReturns = computeShareReturns(dataFeedList, date);
             int nbValues = shareReturns.GetLength(0);
             double expostVolatility = 0;
             int info = 0;
@@ -75,11 +68,11 @@ namespace BackTestCouvertureOptions
             return expostVolatility;
         }
 
-        private double[] computeShareReturns(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList)
+        private double[] computeShareReturns(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime date)
         {
             double[] shareReturns = new double[WindowLength - 1];
 
-            int beginDateIndex = dataFeedList.FindIndex(dataFeed => dataFeed.Date == EstimationDate) - WindowLength;
+            int beginDateIndex = dataFeedList.FindIndex(dataFeed => dataFeed.Date == date) - WindowLength;
 
             decimal previousPrice = dataFeedList[beginDateIndex].PriceList[Id];
             for (int index = 0; index < WindowLength - 1; ++index)
