@@ -11,7 +11,6 @@ namespace BackTestCouvertureOptions
     {
         private String _id;
         private int _windowLength;
-        private DateTime _estimationDate;
         private double _volatility;
 
         public String Id

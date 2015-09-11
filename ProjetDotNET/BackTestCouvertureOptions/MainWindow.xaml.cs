@@ -40,11 +40,22 @@ namespace BackTestCouvertureOptions
                 Share[] shareList = { new Share("BNP PARIBAS", "BNP FP") };
                 VanillaCall vanillaCall = new VanillaCall("V1", shareList, maturityDate, strike);
 
+                // Recuperation de la date de debut d'estimation (pour volatilite)
+                // Check validDate doit être appelé avant
+                System.Collections.Generic.List<DateTime> datesBeforeInitialDate = new System.Collections.Generic.List<DateTime>();
+                using (DataBaseDataContext mtdc = new DataBaseDataContext())
+                {
+                    datesBeforeInitialDate = (from historical in mtdc.HistoricalShareValues 
+                                              where (historical.date <= initialDate)
+                                              select historical.date).Distinct().OrderByDescending(date => date).ToList();
+                }
+                DateTime estimationBeginDate = datesBeforeInitialDate[window];
+
                 // Récupération des données via le data provider
                 //IDataFeedProvider data = new HistoricalDataFeedProvider("HistoricalData", 365);
                 //checkValidDate(data.GetMinDate(), initialDate, window);
                 IDataFeedProvider data = new SimulatedDataFeedProvider();
-                List<DataFeed> dataFeedList = data.GetDataFeed(vanillaCall, initialDate);
+                List<DataFeed> dataFeedList = data.GetDataFeed(vanillaCall, estimationBeginDate);
 
                 // Récupération de la volatilité
                 //ShareVolatility shareVolatility = new ShareVolatility(shareList[0].Id, window);
