@@ -1,16 +1,1 @@
-﻿<?xml version="1.0" encoding="utf-8"?><Database Name="DotNetDB" Class="DataClasses1DataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Connection Mode="AppSettings" ConnectionString="Data Source=ingefin;Initial Catalog=DotNetDB;User ID=etudiant" SettingsObjectName="BackTestCouvertureOptions.Properties.Settings" SettingsPropertyName="DotNetDBConnectionString" Provider="System.Data.SqlClient" />
-  <Table Name="dbo.HistoricalShareValues" Member="HistoricalShareValues">
-    <Type Name="HistoricalShareValues">
-      <Column Name="id" Type="System.String" DbType="NChar(10) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
-      <Column Name="date" Type="System.DateTime" DbType="DateTime NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
-      <Column Name="value" Type="System.Decimal" DbType="Decimal(18,0) NOT NULL" CanBeNull="false" />
-    </Type>
-  </Table>
-  <Table Name="dbo.ShareNames" Member="ShareNames">
-    <Type Name="ShareNames">
-      <Column Name="id" Type="System.String" DbType="NChar(10) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
-      <Column Name="name" Type="System.String" DbType="NVarChar(150) NOT NULL" CanBeNull="false" />
-    </Type>
-  </Table>
-</Database>
+﻿

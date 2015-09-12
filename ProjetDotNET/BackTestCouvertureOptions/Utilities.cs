@@ -6,19 +6,21 @@ using System.Threading.Tasks;
 
 namespace BackTestCouvertureOptions
 {
-    class Utilities
+    public class Utilities
     {
-        public static double computeAccruedRiskFreeRate(DateTime currentDate, DateTime followingDate, int nbDaysPerYear, bool areHistoricalData)
+        // Calcule le taux sans risque proratisé
+        public static double computeAccruedRiskFreeRate(DateTime currentDate, DateTime followingDate, int nbDaysPerYear, bool isSimulatedData)
         {
             int nbDays = 0;
-            if (areHistoricalData)
-                nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
-            else
+            if (isSimulatedData)
                 nbDays = (followingDate - currentDate).Days;
+            else
+                nbDays = PricingLibrary.Utilities.DayCount.CountBusinessDays(currentDate, followingDate);
             double dayDouble = PricingLibrary.Utilities.DayCount.ConvertToDouble(nbDays, nbDaysPerYear);
             return PricingLibrary.Utilities.MarketDataFeed.RiskFreeRateProvider.GetRiskFreeRateAccruedValue(dayDouble);
         }
 
+        // Renvoie les prix spots des actifs à une date donnée
         public static double[] shareSpots(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, System.DateTime date)
         {
             if (!dataFeedList.Any(dataFeed => dataFeed.Date == date))
@@ -36,23 +38,24 @@ namespace BackTestCouvertureOptions
             return spots;
         }
 
-        public System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share> getUnderlyingShares(PricingLibrary.FinancialProducts.Option option)
-        {
-            System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share> underlyingShares = new System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share>();
-            System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
-            using (DataBaseDataContext mtdc = new DataBaseDataContext())
-            {
-                UnderlyingSharesNames = (from s in mtdc.ShareNames where (option.UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
-            }
-            for (int index = 0; index < UnderlyingSharesNames.Count; index++)
-            {
-                var item = UnderlyingSharesNames.ElementAt(index);
-                String itemKey = item.Key;
-                String itemValue = item.Value.TrimEnd();
-                PricingLibrary.FinancialProducts.Share share = new PricingLibrary.FinancialProducts.Share(itemKey, itemValue);
-                underlyingShares[index] = share;
-            }
-            return underlyingShares;
-        }
+        //// Renvoie la liste des sous-jacents d'une option s'ils existent
+        //public System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share> getUnderlyingShares(PricingLibrary.FinancialProducts.Option option)
+        //{
+        //    System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share> underlyingShares = new System.Collections.Generic.List<PricingLibrary.FinancialProducts.Share>();
+        //    System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
+        //    using (DataBaseDataContext mtdc = new DataBaseDataContext())
+        //    {
+        //        UnderlyingSharesNames = (from s in mtdc.ShareNames where (option.UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
+        //    }
+        //    for (int index = 0; index < UnderlyingSharesNames.Count; index++)
+        //    {
+        //        var item = UnderlyingSharesNames.ElementAt(index);
+        //        String itemKey = item.Key;
+        //        String itemValue = item.Value.TrimEnd();
+        //        PricingLibrary.FinancialProducts.Share share = new PricingLibrary.FinancialProducts.Share(itemKey, itemValue);
+        //        underlyingShares[index] = share;
+        //    }
+        //    return underlyingShares;
+        //}
     }
 }

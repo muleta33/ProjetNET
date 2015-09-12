@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace BackTestCouvertureOptions
 {
-    class ShareUtilities
+    public class ShareUtilities
     {
         // import WRE dll
         [DllImport("wre-ensimag-c-4.1.dll", EntryPoint = "WREanalysisExpostVolatility")]
@@ -50,7 +50,6 @@ namespace BackTestCouvertureOptions
                 shareReturns[index] = Math.Log((double)(currentPrice / previousPrice));
                 previousPrice = currentPrice;
             }
-
             return shareReturns;
         }
     }

@@ -8,12 +8,12 @@ namespace BackTestCouvertureOptions
 {
     public class ResultValue
     {
-        private double _payOff;
+        private double _optionValue;
         private double _portfolioValue;
-         public double PayOff
+         public double OptionValue
         {
-            get { return _payOff; }
-            set { _payOff = value; }
+            get { return _optionValue; }
+            set { _optionValue = value; }
         }
 
          public double PortfolioValue
@@ -23,7 +23,7 @@ namespace BackTestCouvertureOptions
         }
         public ResultValue(double payOff , double portfolioValue )
         {
-            PayOff = payOff;
+            OptionValue = payOff;
             PortfolioValue = portfolioValue;
         }
     }

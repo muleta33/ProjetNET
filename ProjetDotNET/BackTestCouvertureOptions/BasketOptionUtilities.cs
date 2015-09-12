@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace BackTestCouvertureOptions
 {
-    class BasketOptionUtilities
+    public class BasketOptionUtilities
     {
         public static double[] computeVolatilities(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, 
                                                    System.DateTime date, int windowLength, int numberDaysPerYear)
@@ -51,7 +51,7 @@ namespace BackTestCouvertureOptions
             return covMatrix;
         }
 
-        private static double[,] computeReturns(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime estimationDate, int windowLength)
+        public static double[,] computeReturns(System.Collections.Generic.List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime estimationDate, int windowLength)
         {
             double[,] returns = new double[windowLength - 1, dataFeedList[0].PriceList.Count];
 
@@ -68,7 +68,7 @@ namespace BackTestCouvertureOptions
             return returns;
         }
 
-        private static double[,] computeCorrelationMatrix(double[,] covarianceMatrix)
+        public static double[,] computeCorrelationMatrix(double[,] covarianceMatrix)
         {
             double[,] correlationMatrix = new double[covarianceMatrix.GetLength(0), covarianceMatrix.GetLength(1)];
             for (int row = 0; row < covarianceMatrix.GetLength(0); ++row)

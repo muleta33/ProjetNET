@@ -3,25 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:oxy="http://oxyplot.org/wpf"
-        Title="MainWindow" Height="763.25" Width="430">
+        Title="MainWindow" Height="383.75" Width="1097">
     <Grid Margin="10,0,2,10">
-        <Button Command="{Binding StartCommand}" x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="202,160,0,0" VerticalAlignment="Top" Width="75"/>
-        <DockPanel HorizontalAlignment="Left" Height="110" Margin="26,10,0,0" VerticalAlignment="Top" Width="310">
-            <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Text="Option Settings" HorizontalAlignment="Center" Margin="118,0,104,5" Width="88" Height="19"/>
-            <ComboBox ItemsSource="{Binding Property}" SelectedItem="{Binding SimpleStringProperty}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="27" Width="120" IsSynchronizedWithCurrentItem="True" Margin="10,50,0,0" Padding="5,2,5,2"/>
-            <TextBox Text="{Binding Strike}" HorizontalAlignment="Left" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" Width="52" Margin="10,50,0,5" Padding="5,2,5,2"/>
-            <TextBox Text="{Binding Maturity}" HorizontalAlignment="Left" Height="27" TextWrapping="Wrap" VerticalAlignment="Top" Width="82" Margin="10,50,0,0" Padding="5,2,5,2"/>
-        </DockPanel>
-        <TextBlock HorizontalAlignment="Left" Margin="54,51,0,0" TextWrapping="Wrap" Text="Underlying Share" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="179,51,0,0" TextWrapping="Wrap" Text="Strike" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="234,51,0,0" TextWrapping="Wrap" Text="Maturity Date" VerticalAlignment="Top"/>
-        <toolkit:RichTextBox x:Name="_richTextBox" IsReadOnly="true" BorderBrush="Gray" Padding="10" HorizontalAlignment="Left" Height="116" Margin="70,593,0,0" VerticalAlignment="Top" Width="299" AcceptsReturn="True"
-                                     Text="{Binding Results, UpdateSourceTrigger=PropertyChanged}" 
+        <Button Command="{Binding StartCommand}" x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="323,59,0,0" VerticalAlignment="Top" Width="75"/>
+        <TextBlock HorizontalAlignment="Left" Margin="41,23,0,0" TextWrapping="Wrap" Text="Chose an option:" VerticalAlignment="Top"/>
+        <toolkit:RichTextBox x:Name="_richTextBox" IsReadOnly="true" BorderBrush="Gray" Padding="10" HorizontalAlignment="Left" Height="200" Margin="28,102,0,0" VerticalAlignment="Top" Width="370" AcceptsReturn="True"
+                                     Text="{Binding OptionDescription, UpdateSourceTrigger=PropertyChanged}" 
                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
             <toolkit:RichTextBox.TextFormatter>
                 <toolkit:PlainTextFormatter />
             </toolkit:RichTextBox.TextFormatter>
         </toolkit:RichTextBox>
-        <oxy:Plot x:Name="Plot1" Title="Results" Model="{Binding PlotModel}" Margin="41,218,42,219" />
+        <oxy:Plot x:Name="Plot1" Title="Results" Model="{Binding PlotModel}" Margin="430,10,27,10" />
+        <ComboBox ItemsSource="{Binding OptionTitles}" SelectedItem="{Binding SelectedOption}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="27" Width="120" IsSynchronizedWithCurrentItem="True" Margin="41,56,0,0" Padding="5,2,5,2"/>
+        <CheckBox Content="Simulated" IsChecked="{Binding Path=Simulated}" HorizontalAlignment="Left" Margin="207,62,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

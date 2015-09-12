@@ -193,119 +193,39 @@ namespace BackTestCouvertureOptions
         }
 
         
-
-        // cree une option à partir de ses caracteristiques
-        // leve une exception si jamais le sous jacent n'existe pas
-        public Option createOption(String name, System.DateTime maturity, double strike, String[] UnderlyingShareIds, double[] weights)
-        {
-            System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
-            Share[] underlyingShares = new Share[UnderlyingShareIds.Count()];
-            IOption option;
-            using (DataBaseDataContext mtdc = new DataBaseDataContext())
-            {
-                UnderlyingSharesNames = (from s in mtdc.ShareNames where (UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
-            }
-            for (int index = 0; index < UnderlyingSharesNames.Count; index++)
-            {
-                var item = UnderlyingSharesNames.ElementAt(index);
-                String itemKey = item.Key;
-                String itemValue = item.Value;
-                Share share = new Share(itemKey, itemValue);
-                underlyingShares[index] = share;
-            }
-            if (UnderlyingSharesNames.Count() > 1)
-            {
-                option = new BasketOption(name, underlyingShares, weights, maturity, strike);
-            }
-            else if (UnderlyingSharesNames.Count() == 1)
-            {
-                option = new VanillaCall(name, underlyingShares, maturity, strike);
-            }
-            else
-            {
-                throw new ParameterException("Share Id not found.");
-            }
-            return (Option)option;
-        }
-
-        public VanillaCall createVanillaCall(String name, System.DateTime maturity, double strike, String[] UnderlyingShareIds)
-        {
-            System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
-            Share[] underlyingShares = new Share[UnderlyingShareIds.Count()];
-            VanillaCall option;
-            using (DataBaseDataContext mtdc = new DataBaseDataContext())
-            {
-                UnderlyingSharesNames = (from s in mtdc.ShareNames where (UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
-            }
-            for (int index = 0; index < UnderlyingSharesNames.Count; index++)
-            {
-                var item = UnderlyingSharesNames.ElementAt(index);
-                String itemKey = item.Key;
-                String itemValue = item.Value;
-                Share share = new Share(itemKey, itemValue);
-                underlyingShares[index] = share;
-            }
-            option = new VanillaCall(name, underlyingShares, maturity, strike);
-            return option;
-        }
-
-        private void checkValidDate(DateTime minDate, DateTime initialDate, int window)
-        {
-            TimeSpan ts = initialDate - minDate;
-            int dif = ts.Days;
-            if (dif <= 0)
-            {
-                throw new ParameterException("The initial date is lower than the first available data date");
-            }
-            dif = PricingLibrary.Utilities.DayCount.CountBusinessDays(minDate, initialDate);
-            if (dif < window)
-            {
-                throw new ParameterException("The estimation window is too large");
-            }
-        }
-
-        // Initialisation du portefeuille
-        //public HedgingPortfolio createPortfolio(Option option, double[] volatilities, double[,] cholesky, DateTime initialDate, List<DataFeed> dataFeedList, int nbDaysPerYear)
+        //// Crée une option à partir de ses caracteristiques
+        //// Lève une exception si jamais le sous jacent n'existe pas
+        //public Option createOption(String name, System.DateTime maturity, double strike, String[] UnderlyingShareIds, double[] weights)
         //{
-        //    PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
-        //    PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-        //    double[] spots = spotShare(initialDate, dataFeedList);
-        //    if (option is VanillaCall)
+        //    System.Collections.Generic.Dictionary<String, String> UnderlyingSharesNames = new System.Collections.Generic.Dictionary<String, String>();
+        //    Share[] underlyingShares = new Share[UnderlyingShareIds.Count()];
+        //    IOption option;
+        //    using (DataBaseDataContext mtdc = new DataBaseDataContext())
         //    {
-        //        res = pricer.PriceCall((VanillaCall)option, initialDate, nbDaysPerYear, spots[0], volatilities[0]);
+        //        UnderlyingSharesNames = (from s in mtdc.ShareNames where (UnderlyingShareIds.Contains(s.id)) select s).ToDictionary(s => s.name, s => s.id);
         //    }
-        //    else if (option is BasketOption)
+        //    for (int index = 0; index < UnderlyingSharesNames.Count; index++)
         //    {
-        //        res = pricer.PriceBasket((BasketOption)option, initialDate, nbDaysPerYear, spots, volatilities, cholesky);
+        //        var item = UnderlyingSharesNames.ElementAt(index);
+        //        String itemKey = item.Key;
+        //        String itemValue = item.Value;
+        //        Share share = new Share(itemKey, itemValue);
+        //        underlyingShares[index] = share;
         //    }
-        //    System.Collections.Generic.Dictionary<string, double> sharesQuantities = new System.Collections.Generic.Dictionary<string, double>();
-        //    double portfolioSharesValue = 0;
-        //    for (int i = 0; i < res.Deltas.Length; i++)
+        //    if (UnderlyingSharesNames.Count() > 1)
         //    {
-        //        Share[] shares = optionshare(option);
-        //        sharesQuantities.Add(shares[i].Id, res.Deltas[i]);
-        //        portfolioSharesValue += res.Deltas[i] * spots[i];
+        //        option = new BasketOption(name, underlyingShares, weights, maturity, strike);
         //    }
-        //    double riskFreeRateInvestment = res.Price - portfolioSharesValue;
-        //    HedgingPortfolio portfolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
-        //    return portfolio;
+        //    else if (UnderlyingSharesNames.Count() == 1)
+        //    {
+        //        option = new VanillaCall(name, underlyingShares, maturity, strike);
+        //    }
+        //    else
+        //    {
+        //        throw new ParameterException("Share Id not found.");
+        //    }
+        //    return (Option)option;
         //}
-
-        public HedgingPortfolio createPortfolio(Option option, PricingResults pricingResults, List<DataFeed> dataFeedList, DateTime date)
-        {
-            System.Collections.Generic.Dictionary<string, double> sharesQuantities = new System.Collections.Generic.Dictionary<string, double>();
-
-            double[] shareSpots = Utilities.shareSpots(dataFeedList, date);
-            double portfolioSharesValue = 0;
-            for (int i = 0; i < pricingResults.Deltas.Length; i++)
-            {
-                sharesQuantities.Add(option.UnderlyingShareIds[i], pricingResults.Deltas[i]);
-                portfolioSharesValue += pricingResults.Deltas[i] * shareSpots[i];
-            }
-            double riskFreeRateInvestment = pricingResults.Price - portfolioSharesValue;
-            HedgingPortfolio portfolio = new HedgingPortfolio(sharesQuantities, riskFreeRateInvestment);
-            return portfolio;
-        }
 
     }
 }
