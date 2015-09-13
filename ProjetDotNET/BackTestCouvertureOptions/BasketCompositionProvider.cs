@@ -1,4 +1,11 @@
-﻿using System;
+﻿/***
+ * Authors: Lachkar Fadoua
+ *          Margot John-Elie
+ *          Moussi Nermine
+ *          Mulet Antoine
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,11 +22,8 @@ namespace BackTestCouvertureOptions
 
         public override PricingLibrary.Computations.PricingResults getComposition(List<PricingLibrary.Utilities.MarketDataFeed.DataFeed> dataFeedList, DateTime date, int windowLength, int numberDaysPerYear)
         {
-            //double[] volatilities = BasketOptionUtilities.computeVolatilities(dataFeedList, date, windowLength, numberDaysPerYear);
-            //double[,] cholesky = BasketOptionUtilities.computeCholeskyCorrelation(dataFeedList, date, windowLength);
-            double[] volatilities = { 0.4, 0.4 };
-            double[,] correlation = { { 1, 0.1 }, { 0.1, 1 } };
-            double[,] cholesky = PricingLibrary.Utilities.LinearAlgebra.Cholesky(correlation);
+            double[] volatilities = BasketOptionUtilities.computeVolatilities(dataFeedList, date, windowLength, numberDaysPerYear);
+            double[,] cholesky = BasketOptionUtilities.computeCholeskyCorrelation(dataFeedList, date, windowLength);
 
             PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
             double[] spotShareArray = Utilities.shareSpots(dataFeedList, date);

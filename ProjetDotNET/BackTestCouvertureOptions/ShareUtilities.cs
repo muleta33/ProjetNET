@@ -1,4 +1,11 @@
-﻿using System;
+﻿/***
+ * Authors: Lachkar Fadoua
+ *          Margot John-Elie
+ *          Moussi Nermine
+ *          Mulet Antoine
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

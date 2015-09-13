@@ -1,4 +1,11 @@
-﻿using System;
+﻿/***
+ * Authors: Lachkar Fadoua
+ *          Margot John-Elie
+ *          Moussi Nermine
+ *          Mulet Antoine
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,9 +28,9 @@ namespace BackTestCouvertureOptions
             get { return _portfolioValue; }
             set { _portfolioValue = value; }
         }
-        public ResultValue(double payOff , double portfolioValue )
+        public ResultValue(double optionValue, double portfolioValue)
         {
-            OptionValue = payOff;
+            OptionValue = optionValue;
             PortfolioValue = portfolioValue;
         }
     }

@@ -1,4 +1,11 @@
-﻿using System;
+﻿/***
+ * Authors: Lachkar Fadoua
+ *          Margot John-Elie
+ *          Moussi Nermine
+ *          Mulet Antoine
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -161,7 +168,7 @@ namespace BackTestCouvertureOptions
 
                     // Parametrage
                     strike = 8;
-                    estimationDate = getEstimationDateForSimulatedData(initialDate, windowLength);
+                    estimationDate = Utilities.getEstimationDateForSimulatedData(initialDate, windowLength);
                     shareList.Add(new Share("BNP PARIBAS", "BNP FP"));
 
                     // Creation de l'option
@@ -182,7 +189,7 @@ namespace BackTestCouvertureOptions
                 {
                     // ----------- Vanilla Call donnees historiques -------- 
                     strike = 35;
-                    estimationDate = getEstimationDateForHistoricalData(initialDate, windowLength);
+                    estimationDate = Utilities.getEstimationDateForHistoricalData(initialDate, windowLength);
                     shareList.Add(new Share("BNP PARIBAS", "BNP FP"));
 
                     Option option = new VanillaCall("Vanilla Call", shareList.ToArray(), maturity, strike);
@@ -202,7 +209,7 @@ namespace BackTestCouvertureOptions
                 {
                     // ----------- Basket option donnees simulees --------
                     strike = 8;
-                    estimationDate = getEstimationDateForSimulatedData(initialDate, windowLength);
+                    estimationDate = Utilities.getEstimationDateForSimulatedData(initialDate, windowLength);
                     shareList.Add(new Share("BNP PARIBAS", "BNP FP"));
                     shareList.Add(new Share("ACCOR SA", "ALO FP"));
                     double[] weights = { 0.3, 0.7 };
@@ -221,7 +228,7 @@ namespace BackTestCouvertureOptions
                 {
                     // ----------- Basket option donnees historiques -------- 
                     strike = 35;
-                    estimationDate = getEstimationDateForHistoricalData(initialDate, windowLength);
+                    estimationDate = Utilities.getEstimationDateForHistoricalData(initialDate, windowLength);
                     shareList.Add(new Share("BNP PARIBAS", "BNP FP"));
                     shareList.Add(new Share("ACCOR SA", "ALO FP"));
                     double[] weights = { 0.3, 0.7 };
@@ -239,25 +246,6 @@ namespace BackTestCouvertureOptions
             }    
         }
 
-        public DateTime getEstimationDateForSimulatedData(DateTime initialDate, int windowLength)
-        {
-            return initialDate.AddDays(-windowLength);
-        }
-
-        public DateTime getEstimationDateForHistoricalData(DateTime initialDate, int windowLength)
-        {
-            // Recuperation de la date de debut d'estimation (pour volatilite)
-            //System.Collections.Generic.List<DateTime> datesBeforeInitialDate = new System.Collections.Generic.List<DateTime>();
-            //using (DataBaseDataContext mtdc = new DataBaseDataContext())
-            //{
-            //    datesBeforeInitialDate = (from historical in mtdc.HistoricalShareValues
-            //                              where (historical.date <= initialDate)
-            //                              select historical.date).Distinct().OrderByDescending(date => date).ToList();
-            //}
-            //return datesBeforeInitialDate[windowLength];
-            return new DateTime();
-        }
-
         public void sharedMain(Option option, CompositionProvider compositionProvider, List<DataFeed> dataFeedList, List<Share> shareList, DateTime initialDate, double strike, DateTime maturity, int windowLength, int numberOfDaysPerYear, bool simulated)
         {
             PricingResults pricingResults = compositionProvider.getComposition(dataFeedList, initialDate, windowLength, numberOfDaysPerYear);
@@ -273,7 +261,7 @@ namespace BackTestCouvertureOptions
             // Création du graphique de résultats
             PlotModel = new PlotModel();
             SetUpModel();
-            OptionDescription = "Underlying share: " + shareListString(shareList.ToArray()) + "\n Strike: " + strike + "\n Start Date: " + initialDate + "\n Maturity: " + maturity;
+            OptionDescription = "Underlying share: " + Utilities.shareListString(shareList.ToArray()) + "\n Strike: " + strike + "\n Start Date: " + initialDate + "\n Maturity: " + maturity;
 
             // Tracé du plot
             DrawPlot(plotResults, payoff);
@@ -306,14 +294,6 @@ namespace BackTestCouvertureOptions
             return plotResults;
         }
 
-        private string shareListString(Share[] shareList)
-        {
-            string shareListString = "";
-            for (int i = 0; i < shareList.Length - 1; i++) { shareListString += shareList[i].Name + ", "; }
-            shareListString += shareList[shareList.Length - 1].Name;
-            return shareListString;
-        }
-
         // Création et initialisation du portefeuille de couverture de l'option
         public HedgingPortfolio createPortfolio(Option option, PricingResults pricingResults, List<DataFeed> dataFeedList, DateTime date)
         {
@@ -331,20 +311,5 @@ namespace BackTestCouvertureOptions
             return portfolio;
         }
 
-        // Vérifie la validité des dates
-        private void checkValidDate(DateTime minDate, DateTime initialDate, int window)
-        {
-            TimeSpan ts = initialDate - minDate;
-            int dif = ts.Days;
-            if (dif <= 0)
-            {
-                throw new ParameterException("The initial date is lower than the first available data date");
-            }
-            dif = PricingLibrary.Utilities.DayCount.CountBusinessDays(minDate, initialDate);
-            if (dif < window)
-            {
-                throw new ParameterException("The estimation window is too large");
-            }
-        }
     }
 }

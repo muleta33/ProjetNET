@@ -1,4 +1,11 @@
-﻿using System;
+﻿/***
+ * Authors: Lachkar Fadoua
+ *          Margot John-Elie
+ *          Moussi Nermine
+ *          Mulet Antoine
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,15 +42,6 @@ namespace BackTestCouvertureOptions
         {
             SharesQuantities = sharesQuantities;
             RiskFreeRateInvestment = riskFreeRateInvestment;
-            //UnderlyingShare = underlyingShare;
-            //// Initialisation du prix du portefeuille
-            //PricingLibrary.Computations.PricingResults res = new PricingLibrary.Computations.PricingResults(0, new double[0]);
-            //PricingLibrary.Computations.Pricer pricer = new PricingLibrary.Computations.Pricer();
-            //res = pricer.PriceCall(call, initialDate, 365, underlyingSharePrice, volatility);
-            //PortfolioValue = res.Price;
-            //// Constitution du portefuille
-            //rebalancing(call, initialDate, underlyingSharePrice, volatility);
-            
         }
 
         public void computeValue(System.Collections.Generic.Dictionary<String, decimal> sharesPrices, double rate)
@@ -69,34 +67,6 @@ namespace BackTestCouvertureOptions
                 sumValue += SharesQuantities[sharePrice.Key] * (double)sharePrice.Value;
             }
             RiskFreeRateInvestment = Value - sumValue;
-
-
-            //// VanillaCall
-            //if (option is VanillaCall)
-            //{
-            //    PricingLibrary.Computations.PricingResults res = pricer.PriceCall((VanillaCall)option, atTime, 365, (double)sharesPrices[option.UnderlyingShareIds[0]], volatilities[0]);
-            //    SharesQuantities[option.UnderlyingShareIds[0]] = res.Deltas[0];
-            //    RiskFreeRateInvestment = Value - (SharesQuantities[option.UnderlyingShareIds[0]] * (double)sharesPrices[option.UnderlyingShareIds[0]]);
-            //}
-            //// BasketOPtion
-            //else if (option is BasketOption)
-            //{
-            //    double[] spotPrices = new double[sharesPrices.Count];
-            //    int i = 0;
-            //    foreach (KeyValuePair<string, decimal> sharePrice in sharesPrices)
-            //    {
-            //        spotPrices[i] = (double)sharePrice.Value;
-            //        ++i;
-            //    }
-            //    PricingLibrary.Computations.PricingResults res = pricer.PriceBasket((BasketOption)option, atTime, 365, spotPrices, volatilities, cholesky);
-            //    double sumValue = 0;
-            //    for (int j = 0; j < res.Deltas.Length; j++)
-            //    {
-            //        SharesQuantities[option.UnderlyingShareIds[j]] = res.Deltas[j];
-            //        sumValue += SharesQuantities[option.UnderlyingShareIds[j]] * (double)sharesPrices[option.UnderlyingShareIds[j]];
-            //    }
-            //    RiskFreeRateInvestment = Value - sumValue;
-            //}
         }
 
         public void update(System.Collections.Generic.Dictionary<String, decimal> sharesPrices, double[] deltas, double rate)
